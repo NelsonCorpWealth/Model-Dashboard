@@ -85,6 +85,18 @@ thead th[aria-sort] .arrow{opacity:1;color:var(--green)}
 tbody td{padding:9px 11px;border-bottom:1px solid var(--grid);vertical-align:middle}
 tbody tr:last-child td{border-bottom:0}
 tbody tr:hover{background:var(--green-xlight)}
+/* A model that changed this past week: tint the whole row by where it moved.
+   Colour is reinforcement only - the New badge and the signal pill still say it. */
+tbody tr.chg{box-shadow:inset 3px 0 0 0 currentColor}
+tbody tr.chg-pos{background:#eaf7ee;color:var(--pos)}
+tbody tr.chg-neg{background:#fdeeee;color:var(--neg)}
+tbody tr.chg-neu{background:#fdf6e0;color:var(--neu)}
+tbody tr.chg td{color:var(--text-dark)}
+/* the pill sits on a tint of its own colour - a hairline keeps its shape */
+tbody tr.chg .pill{box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}
+tbody tr.chg-pos:hover{background:#dcf1e3}
+tbody tr.chg-neg:hover{background:#fbe2e2}
+tbody tr.chg-neu:hover{background:#faeecb}
 tbody tr.sub td:first-child{padding-left:34px;color:var(--text-mid);font-size:.85rem}
 .mname{font-weight:600;color:var(--text-dark)}
 .mname .badges{display:inline-flex;gap:5px;margin-left:7px;vertical-align:middle}
@@ -188,6 +200,7 @@ tbody tr.sub td:first-child{padding-left:34px;color:var(--text-mid);font-size:.8
     <span><span class="pill NEGATIVE"><span class="g">&#9660;</span>NEGATIVE</span> model reads defensive</span>
     <span><span class="badge prod">In Production</span> used in allocation decisions</span>
     <span><span class="badge research">Research</span> not used in allocation decisions</span>
+    <span><span class="badge changed">New</span> changed this past week &mdash; row is tinted by direction</span>
     <span><span class="badge pending">Changing</span> model has flipped; published signal catches up next bar</span>
     <span><span class="badge manual">Manual</span> updated by hand each week</span>
   </div>
@@ -372,7 +385,14 @@ function rowHTML(rec, parent, isSub){
     spark = sparkline(rec);
   }
 
-  return '<tr class="' + (isSub ? 'sub' : '') + '">' +
+  var rowCls = isSub ? 'sub' : '';
+  if(!isSub && rec._changed){
+    var st = stateClass(rec.signal);
+    rowCls += ' chg ' + (st === 'POSITIVE' ? 'chg-pos'
+                       : st === 'NEGATIVE' ? 'chg-neg' : 'chg-neu');
+  }
+
+  return '<tr class="' + rowCls + '">' +
     '<td>' + name + '</td>' +
     '<td>' + sigCell(rec) + '</td>' +
     '<td>' + dateCell(rec) + '</td>' +
