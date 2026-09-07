@@ -9,7 +9,7 @@
 <style>
 :root{
   --green:#2d6a4f;--green-dark:#1b4332;--green-mid:#40916c;--green-light:#d8f3dc;--green-xlight:#f0faf2;
-  --gold:#c9a84c;--gold-light:#f0d080;--red:#b83232;
+  --gold:#c9a84c;--red:#b83232;
   --white:#fff;--off-white:#f8f9f7;--light-gray:#eef0eb;--border:#dde5d8;
   --text-dark:#1b2e1f;--text-mid:#3d5240;--text-light:#5f7563;
   --pos:#1a6b3c;--neg:#b83232;--neu:#7a6a2a;
@@ -21,18 +21,17 @@ body{margin:0;background:var(--off-white);color:var(--text-dark);
      font-family:'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
      font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
 
-/* ---------- header (shared styling with the Big Picture Risk Model dashboard) ---------- */
-.hdr{background:var(--green-dark);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:72px;border-bottom:4px solid var(--gold);flex-wrap:wrap;gap:8px;line-height:normal}
-.hdr-left{display:flex;align-items:center;gap:14px}
-.logo-img{height:42px;filter:brightness(0) invert(1);object-fit:contain}
-.hdr-div{width:1px;height:30px;background:rgba(255,255,255,0.18)}
-.hdr-sub{font-size:0.8rem;color:rgba(255,255,255,0.5);letter-spacing:0.1em;text-transform:uppercase}
-.hdr-date{font-size:0.82rem;color:rgba(255,255,255,0.4)}
-
-/* ---------- title bar ---------- */
-.title-bar{background:var(--green);padding:16px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
-.title-bar h1{margin:0;font-family:'Merriweather',serif;font-size:1.35rem;font-weight:400;line-height:normal;color:#fff}
-.title-bar h1 span{color:var(--gold-light)}
+/* ---------- header ---------- */
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:16px;
+     background:var(--green-dark);color:#fff;padding:12px 22px}
+.hdr-left{display:flex;align-items:center;gap:14px;min-width:0}
+.logo-img{height:26px;width:auto;filter:brightness(0) invert(1)}
+.hdr-div{width:1px;height:22px;background:rgba(255,255,255,.28)}
+.hdr-sub{font-size:.86rem;letter-spacing:.09em;text-transform:uppercase;opacity:.82;white-space:nowrap}
+.hdr-date{font-size:.82rem;opacity:.8;text-align:right;white-space:nowrap}
+.title-bar{background:var(--green);color:#fff;padding:16px 22px}
+.title-bar h1{margin:0;font-family:'Merriweather',Georgia,serif;font-weight:400;font-size:1.5rem;letter-spacing:.01em}
+.title-bar h1 span{opacity:.72;font-weight:300}
 
 .main{max-width:1320px;margin:0 auto;padding:20px 18px 56px}
 
@@ -96,6 +95,12 @@ tbody tr.sub td:first-child{padding-left:34px;color:var(--text-mid);font-size:.8
 .badge.manual{border-color:#e8cf9a;background:var(--neu-bg);color:var(--neu)}
 .badge.stale{border-color:#e6b8b8;background:var(--neg-bg);color:var(--neg)}
 .badge.changed{border-color:var(--green);background:var(--green);color:#fff}
+.badge.pending{border-color:var(--gold);background:#fbf3de;color:#6b5613}
+.sigcell{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sigcell .to{color:var(--text-light);font-size:.8rem;line-height:1}
+.pill.ghost{background:transparent;border:1px dashed currentColor;opacity:.95}
+.datecell{line-height:1.25}
+.datecell .pend{display:block;font-size:.76rem;color:#6b5613;font-variant-numeric:tabular-nums}
 
 .pill{display:inline-flex;align-items:center;gap:5px;font-weight:600;font-size:.78rem;
       padding:3px 9px;border-radius:4px;white-space:nowrap}
@@ -130,18 +135,11 @@ tbody tr.sub td:first-child{padding-left:34px;color:var(--text-mid);font-size:.8
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .empty{padding:26px;text-align:center;color:var(--text-light);font-size:.9rem}
 
-@media (max-width:768px){
-  .hdr,.title-bar{padding-left:18px;padding-right:18px}
-}
 @media (max-width:760px){
+  .title-bar h1{font-size:1.2rem}
   .main{padding:14px 11px 40px}
+  .hdr-sub{display:none}
   table{min-width:760px;font-size:.84rem}
-}
-@media (max-width:600px){
-  .hdr{height:auto;padding-top:10px;padding-bottom:10px}
-  .hdr-sub{font-size:0.7rem}
-  .hdr-date{font-size:0.72rem}
-  .title-bar h1{font-size:1.1rem}
 }
 @media print{
   .controls,#tip{display:none}
@@ -190,6 +188,7 @@ tbody tr.sub td:first-child{padding-left:34px;color:var(--text-mid);font-size:.8
     <span><span class="pill NEGATIVE"><span class="g">&#9660;</span>NEGATIVE</span> model reads defensive</span>
     <span><span class="badge prod">In Production</span> used in allocation decisions</span>
     <span><span class="badge research">Research</span> not used in allocation decisions</span>
+    <span><span class="badge pending">Changing</span> model has flipped; published signal catches up next bar</span>
     <span><span class="badge manual">Manual</span> updated by hand each week</span>
   </div>
 
@@ -271,6 +270,26 @@ function pill(v){
   return '<span class="pill ' + cls + '">' + (g ? '<span class="g">' + g + '</span>' : '') +
          esc(String(v).toUpperCase()) + '</span>';
 }
+function sigCell(rec){
+  var cur = pill(rec.signal);
+  var p = rec.pending;
+  if(!p || !p.to) return cur;
+  var cls = stateClass(p.to), g = glyph(cls);
+  return '<span class="sigcell">' + cur +
+    '<span class="to" title="The model\u2019s unlagged mode has already flipped; the published ' +
+    'signal follows one bar later">&rarr;</span>' +
+    '<span class="pill ghost ' + cls + '" title="Pending - not yet the published signal">' +
+    (g ? '<span class="g">' + g + '</span>' : '') + esc(String(p.to).toUpperCase()) + '</span></span>';
+}
+
+function dateCell(rec){
+  var out = fmtDate(rec.signal_date);
+  if(rec.pending && rec.pending.date)
+    out += '<span class="pend" title="Date the model actually changed">changed ' +
+           fmtDate(rec.pending.date).replace(/<[^>]+>/g,'') + '</span>';
+  return '<span class="datecell">' + out + '</span>';
+}
+
 function trendMark(t){
   if(t === 1)  return '<span class="trend up" title="Rising">&#9650;</span>';
   if(t === -1) return '<span class="trend down" title="Falling">&#9660;</span>';
@@ -338,6 +357,10 @@ function rowHTML(rec, parent, isSub){
       badges += '<span class="badge stale" title="Source workbook last updated ' + esc(rec.data_date) +
                 '">Stale ' + rec.stale_days + 'd</span>';
     if(rec._changed) badges += '<span class="badge changed" title="Signal date is within the last 7 sessions">New</span>';
+    if(rec.pending && rec.pending.to)
+      badges += '<span class="badge pending" title="The model changed on ' +
+                esc(rec.pending.date || 'the latest bar') + '. Its built-in 1-day lag means the ' +
+                'published signal does not catch up until the next bar.">Changing</span>';
     if(badges) name += '<span class="badges">' + badges + '</span>';
     name += '</span>';
   }
@@ -351,8 +374,8 @@ function rowHTML(rec, parent, isSub){
 
   return '<tr class="' + (isSub ? 'sub' : '') + '">' +
     '<td>' + name + '</td>' +
-    '<td>' + pill(rec.signal) + '</td>' +
-    '<td>' + fmtDate(rec.signal_date) + '</td>' +
+    '<td>' + sigCell(rec) + '</td>' +
+    '<td>' + dateCell(rec) + '</td>' +
     '<td class="num">' + fmtPct(rec['return']) + '</td>' +
     '<td><div class="lvl"><span class="lvl-num">' + fmtLevel(rec.level) + '</span>' + spark + '</div></td>' +
     '<td>' + trendMark(rec.trend) + '</td>' +
@@ -473,6 +496,7 @@ function renderTiles(){
                  daysBetween(m.signal_date, d.market_date) <= 7;
   });
 
+  var pending = d.models.filter(function(m){ return m.production && m.pending && m.pending.to; });
   var issues = d.warnings || [];
 
   function pct(n){ return placed ? (100*n/placed).toFixed(0) : 0; }
@@ -500,7 +524,12 @@ function renderTiles(){
            '<div class="tile-sub">' + (changed.length
              ? changed.map(function(m){return esc(m.name);}).slice(0,3).join(', ') +
                (changed.length>3 ? ' +' + (changed.length-3) + ' more' : '')
-             : 'No production model changed in the last 7 sessions') + '</div></div>';
+             : 'No production model changed in the last 7 sessions') +
+           (pending.length
+             ? '<br><b>' + pending.length + ' changing now</b> \u2014 ' +
+               pending.map(function(m){return esc(m.name);}).slice(0,2).join(', ') +
+               (pending.length>2 ? ' +' + (pending.length-2) : '')
+             : '') + '</div></div>';
 
   var freshBad = issues.length;
   tiles += '<div class="tile' + (freshBad ? ' warn' : '') + '"><div class="tile-lbl">Source data</div>' +
