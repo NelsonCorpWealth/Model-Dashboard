@@ -9,7 +9,7 @@
 <style>
 :root{
   --green:#2d6a4f;--green-dark:#1b4332;--green-mid:#40916c;--green-light:#d8f3dc;--green-xlight:#f0faf2;
-  --gold:#c9a84c;--red:#b83232;
+  --gold:#c9a84c;--gold-light:#f0d080;--red:#b83232;
   --white:#fff;--off-white:#f8f9f7;--light-gray:#eef0eb;--border:#dde5d8;
   --text-dark:#1b2e1f;--text-mid:#3d5240;--text-light:#5f7563;
   --pos:#1a6b3c;--neg:#b83232;--neu:#7a6a2a;
@@ -21,17 +21,18 @@ body{margin:0;background:var(--off-white);color:var(--text-dark);
      font-family:'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
      font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased}
 
-/* ---------- header ---------- */
-.hdr{display:flex;align-items:center;justify-content:space-between;gap:16px;
-     background:var(--green-dark);color:#fff;padding:12px 22px}
-.hdr-left{display:flex;align-items:center;gap:14px;min-width:0}
-.logo-img{height:26px;width:auto;filter:brightness(0) invert(1)}
-.hdr-div{width:1px;height:22px;background:rgba(255,255,255,.28)}
-.hdr-sub{font-size:.86rem;letter-spacing:.09em;text-transform:uppercase;opacity:.82;white-space:nowrap}
-.hdr-date{font-size:.82rem;opacity:.8;text-align:right;white-space:nowrap}
-.title-bar{background:var(--green);color:#fff;padding:16px 22px}
-.title-bar h1{margin:0;font-family:'Merriweather',Georgia,serif;font-weight:400;font-size:1.5rem;letter-spacing:.01em}
-.title-bar h1 span{opacity:.72;font-weight:300}
+/* ---------- header: the NelsonCorp standard (from the Big Picture Risk Model Dashboard) ---------- */
+.hdr{background:var(--green-dark);padding:0 40px;display:flex;align-items:center;justify-content:space-between;height:72px;border-bottom:4px solid var(--gold);flex-wrap:wrap;gap:8px;line-height:normal}
+.hdr-left{display:flex;align-items:center;gap:14px}
+.logo-img{height:42px;filter:brightness(0) invert(1);object-fit:contain}
+.hdr-div{width:1px;height:30px;background:rgba(255,255,255,0.18)}
+.hdr-sub{font-size:0.8rem;color:rgba(255,255,255,0.5);letter-spacing:0.1em;text-transform:uppercase}
+.hdr-date{font-size:0.82rem;color:rgba(255,255,255,0.4)}
+.title-bar{background:var(--green);padding:16px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.title-bar h1{margin:0;font-family:'Merriweather',serif;font-size:1.35rem;font-weight:400;line-height:normal;color:#fff}
+.title-bar h1 span{color:var(--gold-light)}
+@media(max-width:768px){.hdr,.title-bar{padding-left:18px;padding-right:18px}}
+@media(max-width:600px){.hdr{height:auto;padding-top:10px;padding-bottom:10px}.hdr-sub{font-size:0.7rem}.hdr-date{font-size:0.72rem}.title-bar h1{font-size:1.1rem}}
 
 .main{max-width:1320px;margin:0 auto;padding:20px 18px 56px}
 
@@ -148,9 +149,7 @@ tbody tr.sub td:first-child{padding-left:34px;color:var(--text-mid);font-size:.8
 .empty{padding:26px;text-align:center;color:var(--text-light);font-size:.9rem}
 
 @media (max-width:760px){
-  .title-bar h1{font-size:1.2rem}
   .main{padding:14px 11px 40px}
-  .hdr-sub{display:none}
   table{min-width:760px;font-size:.84rem}
 }
 @media print{
