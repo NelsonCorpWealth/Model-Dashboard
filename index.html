@@ -359,6 +359,8 @@ function rowHTML(rec, parent, isSub){
   var name, badges = '';
   if(isSub){
     name = esc(rec.label || rec.name || '');
+    if(rec._changed)
+      name += '<span class="badges"><span class="badge changed" title="This rank position changed within the last 7 sessions">New</span></span>';
   } else {
     name = '<span class="mname">' + esc(rec.name);
     badges += rec.production
@@ -385,7 +387,7 @@ function rowHTML(rec, parent, isSub){
   }
 
   var rowCls = isSub ? 'sub' : '';
-  if(!isSub && rec._changed){
+  if(rec._changed){
     var st = stateClass(rec.signal);
     rowCls += ' chg ' + (st === 'POSITIVE' ? 'chg-pos'
                        : st === 'NEGATIVE' ? 'chg-neg' : 'chg-neu');
@@ -505,15 +507,21 @@ function renderTiles(){
   });
   var placed = counts.POS + counts.NEUTRAL + counts.NEG;
 
-  var changed = d.models.filter(function(m){
-    if(!m.production || !m.signal_date || !d.market_date) return false;
-    var n = daysBetween(m.signal_date, d.market_date);
+  function recent(sd){
+    if(!sd || !d.market_date) return false;
+    var n = daysBetween(sd, d.market_date);
     return n != null && n >= 0 && n <= 7;
-  });
+  }
   d.models.forEach(function(m){
-    m._changed = m.production && m.signal_date && d.market_date &&
-                 daysBetween(m.signal_date, d.market_date) <= 7;
+    m._changed = !!(m.production && recent(m.signal_date));
+    (m.subs || []).forEach(function(s){
+      // a rank position moving (e.g. EM overtaking EAFE for #2) is a change
+      // to the model even when the #1 slot is unchanged
+      s._changed = !!(m.production && recent(s.signal_date));
+      if(s._changed) m._changed = true;
+    });
   });
+  var changed = d.models.filter(function(m){ return m._changed; });
 
   var pending = d.models.filter(function(m){ return m.production && m.pending && m.pending.to; });
   var issues = d.warnings || [];
