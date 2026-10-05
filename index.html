@@ -200,8 +200,9 @@ tbody tr.sub .badges{display:inline-flex;margin-left:7px;vertical-align:middle}
     <span><span class="pill NEGATIVE"><span class="g">&#9660;</span>NEGATIVE</span> model reads defensive</span>
     <span><span class="badge prod">In Production</span> used in allocation decisions</span>
     <span><span class="badge research">Research</span> not used in allocation decisions</span>
-    <span><span class="badge changed">New</span> changed this past week &mdash; row is tinted by direction</span>
+    <span><span class="badge changed">New</span> changed this past week</span>
     <span><span class="badge pending">Changing</span> model has flipped; published signal catches up next bar</span>
+    <span>Changed and Changing rows are shaded by direction: green for a move up (incl. negative &rarr; neutral), red for a move down (incl. positive &rarr; neutral)</span>
     <span><span class="badge manual">Manual</span> updated by hand each week</span>
   </div>
 
@@ -270,6 +271,20 @@ function stateClass(v){
   if(s === 'NEGATIVE' || s === 'SHORT') return 'NEGATIVE';
   if(s === 'NEUTRAL') return 'NEUTRAL';
   return 'OTHER';
+}
+/* Tint for a signal move. Into POSITIVE is green, into NEGATIVE is red.
+   Into NEUTRAL takes the direction of travel: down from POSITIVE is red,
+   up from NEGATIVE is green. Anything else (unknown prior, non-L/N/S
+   signals like regimes or ranks) falls back to yellow. */
+function moveTint(from, to){
+  var f = stateClass(from), t = stateClass(to);
+  if(t === 'POSITIVE') return 'pos';
+  if(t === 'NEGATIVE') return 'neg';
+  if(t === 'NEUTRAL'){
+    if(f === 'POSITIVE') return 'neg';
+    if(f === 'NEGATIVE') return 'pos';
+  }
+  return 'neu';
 }
 function glyph(cls){
   return cls === 'POSITIVE' ? '&#9650;' : cls === 'NEGATIVE' ? '&#9660;'
@@ -388,11 +403,14 @@ function rowHTML(rec, parent, isSub){
   }
 
   var rowCls = isSub ? 'sub' : '';
-  if(rec._changed){
-    var st = stateClass(rec.signal);
-    rowCls += ' chg ' + (st === 'POSITIVE' ? 'chg-pos'
-                       : st === 'NEGATIVE' ? 'chg-neg' : 'chg-neu');
-  }
+  // A row that is Changing now is tinted by the move it is making; otherwise a
+  // row that changed this past week is tinted by the move it made.
+  var tint = null;
+  if(rec.pending && rec.pending.to)
+    tint = moveTint(rec.pending.from || rec.signal, rec.pending.to);
+  else if(rec._changed)
+    tint = moveTint(rec.prev_signal, rec.signal);
+  if(tint) rowCls += ' chg chg-' + tint;
 
   return '<tr class="' + rowCls + '">' +
     '<td>' + name + '</td>' +
