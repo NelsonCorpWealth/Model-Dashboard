@@ -126,6 +126,7 @@ tbody tr.sub .badges{display:inline-flex;margin-left:7px;vertical-align:middle}
 .num{font-variant-numeric:tabular-nums;white-space:nowrap}
 .ret.up{color:var(--pos)} .ret.down{color:var(--neg)}
 .trend{font-size:.95rem;line-height:1}
+.th-note{font-weight:400;text-transform:none;letter-spacing:0;opacity:.75}
 .trend.up{color:var(--pos)} .trend.down{color:var(--neg)} .trend.flat{color:var(--text-light)}
 .muted{color:var(--text-light)}
 .lvl{display:flex;align-items:center;gap:9px}
@@ -237,6 +238,15 @@ function fmtPct(v){
 function fmtLevel(v){
   if(isNum(v)) return (Math.round(v*100)/100).toFixed(2).replace(/\.00$/,'');
   return v == null || v === '' ? '&mdash;' : esc(v);
+}
+
+/* Pacer Above/Below rows carry the % distance from the 200-day MA as a decimal. */
+function lvlText(rec){
+  if(isNum(rec.level) && /Above\/Below/i.test(rec.label || '')){
+    var s = (rec.level*100).toFixed(2) + '%';
+    return rec.level > 0 ? '+' + s : s;
+  }
+  return fmtLevel(rec.level);
 }
 
 function fmtKey(v){
@@ -417,7 +427,7 @@ function rowHTML(rec, parent, isSub){
     '<td>' + sigCell(rec) + '</td>' +
     '<td>' + dateCell(rec) + '</td>' +
     '<td class="num">' + fmtPct(rec['return']) + '</td>' +
-    '<td><div class="lvl"><span class="lvl-num">' + fmtLevel(rec.level) + '</span>' + spark + '</div></td>' +
+    '<td><div class="lvl"><span class="lvl-num">' + lvlText(rec) + '</span>' + spark + '</div></td>' +
     '<td>' + trendMark(rec.trend) + '</td>' +
     '<td>' + fmtKey(rec.key_up) + '</td>' +
     '<td>' + fmtKey(rec.key_down) + '</td>' +
@@ -450,7 +460,7 @@ var COLS = [
   {key:'date',   label:'Signal Date'},
   {key:'ret',    label:'Return Since'},
   {key:'level',  label:'Current Level'},
-  {key:null,     label:'Trend'},
+  {key:null,     label:'Trend <span class="th-note">(vs. 1 week ago)</span>', title:'Current level compared with the level 5 sessions earlier'},
   {key:null,     label:'Key Level &#8593;', title:'Level the composite must reach to move up'},
   {key:null,     label:'Key Level &#8595;', title:'Level the composite must reach to move down'}
 ];
